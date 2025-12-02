@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Animazioni opzionali */
+@import "tw-animate-css";
+
+/* I tuoi stili globali personalizzati possono andare qui */
+html, body {
+  margin: 0;
+  padding: 0;
+}
