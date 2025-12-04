@@ -1,7 +1,14 @@
 // components/PiProvider.tsx
 "use client";
 
-import { useEffect, useState, createContext, useContext, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  createContext,
+  useContext,
+  type ReactNode,
+} from "react";
 
 declare global {
   interface Window {
@@ -28,9 +35,19 @@ export default function PiProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
+  const initCalledRef = useRef(false);
 
   const runAuthentication = async (sdk: any) => {
     if (!sdk) return null;
+    const isPiBrowser =
+      typeof navigator !== "undefined"
+        ? navigator.userAgent?.toLowerCase().includes("pibrowser")
+        : false;
+
+    if (!isPiBrowser) {
+      setUser(null);
+      return null;
+    }
 
     setAuthenticating(true);
     try {
@@ -56,31 +73,62 @@ export default function PiProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const setupPi = async () => {
-      if (!window.Pi) return;
+    let cancelled = false;
 
-      window.Pi.init({
-        version: "2.0",
-        sandbox: true,
+    const waitForPiSdk = () =>
+      new Promise<any | null>((resolve) => {
+        if (window.Pi) return resolve(window.Pi);
+
+        // Ensure the SDK script exists even if Next.js hydration skipped it for some reason.
+        const existingScript = document.querySelector(
+          'script[src="https://sdk.minepi.com/pi-sdk.js"]'
+        );
+        if (!existingScript) {
+          const script = document.createElement("script");
+          script.src = "https://sdk.minepi.com/pi-sdk.js";
+          script.async = true;
+          document.head.appendChild(script);
+        }
+
+        const timeout = window.setTimeout(() => resolve(null), 7000);
+        const poll = window.setInterval(() => {
+          if (window.Pi) {
+            window.clearTimeout(timeout);
+            window.clearInterval(poll);
+            resolve(window.Pi);
+          }
+        }, 100);
       });
 
-      setPi(window.Pi);
-      await runAuthentication(window.Pi);
-      setInitialized(true);
+    const setupPi = async () => {
+      const sdk = await waitForPiSdk();
+      if (!sdk || cancelled) {
+        setInitialized(true);
+        return;
+      }
+
+      try {
+        if (!initCalledRef.current) {
+          sdk.init({
+            version: "2.0",
+            sandbox: true,
+          });
+          initCalledRef.current = true;
+        }
+        setPi(sdk);
+        await runAuthentication(sdk);
+      } catch (err) {
+        console.error("Pi SDK initialization failed", err);
+      } finally {
+        if (!cancelled) setInitialized(true);
+      }
     };
 
-    if (window.Pi) {
-      setupPi();
-      return;
-    }
+    void setupPi();
 
-    const script = document.createElement("script");
-    script.src = "https://sdk.minepi.com/pi-sdk.js";
-    script.async = true;
-    script.onload = () => {
-      setupPi();
+    return () => {
+      cancelled = true;
     };
-    document.head.appendChild(script);
   }, []);
 
   return (
