@@ -5,6 +5,14 @@ import { useEffect, useState } from "react";
 
 import { syncPiProfile, type PiUserProfile } from "@/utils/auth";
 
+type PiSDK = {
+  init?: (options: { version: string; sandbox?: boolean }) => Promise<void> | void;
+  authenticate?: (
+    scopes: string[],
+    options: { onIncompletePaymentFound?: (payment: unknown) => void }
+  ) => Promise<{ user?: { uid?: string; id?: string; username?: string }; accessToken?: string; access_token?: string }>;
+};
+
 type AuthStatus = "idle" | "loading" | "authenticated" | "error";
 
 export default function PiAuthHandler() {
@@ -19,13 +27,14 @@ export default function PiAuthHandler() {
         setStatus("loading");
         setError(null);
 
-        const { PiNetwork } = (await import("@pinetwork-sdk/client")) as {
-          PiNetwork?: any;
-        };
+        const isPiBrowser =
+          typeof window !== "undefined" && typeof navigator !== "undefined"
+            ? navigator.userAgent?.toLowerCase().includes("pibrowser")
+            : false;
 
-        const sdk = PiNetwork ?? (typeof window !== "undefined" ? (window as any).Pi : null);
-        if (!sdk) {
-          throw new Error("Pi SDK non disponibile nel browser.");
+        const sdk: PiSDK | null = typeof window !== "undefined" ? ((window as any).Pi as PiSDK) : null;
+        if (!sdk || !isPiBrowser) {
+          throw new Error("Apri l'app nel Pi Browser per utilizzare l'SDK Pi.");
         }
 
         if (typeof sdk.init === "function") {
