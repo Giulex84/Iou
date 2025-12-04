@@ -1,4 +1,13 @@
 /** @type {import('next').NextConfig} */
+const csp = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.minepi.com;
+  connect-src 'self' https://api.minepi.com https://socialchain.network https://socialchain.app https://api.socialchain.app https://k8s-mainnet-fe.piapps-network.org https://api.pinet.minepi.com;
+  img-src 'self' data: blob:;
+  style-src 'self' 'unsafe-inline';
+  frame-ancestors 'self';
+`;
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -9,6 +18,28 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: csp.replace(/\s{2,}/g, " ").trim(),
+          },
+        ],
+      },
+    ];
+  },
+};
 
 export default nextConfig

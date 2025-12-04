@@ -18,9 +18,7 @@ export default function StartPaymentButton() {
       }
 
       const isPiBrowser =
-        typeof navigator !== "undefined"
-          ? navigator.userAgent?.toLowerCase().includes("pibrowser")
-          : false;
+        typeof navigator !== "undefined" ? /pibrowser/i.test(navigator.userAgent) : false;
 
       if (!isPiBrowser) {
         setStatus("Open this page in Pi Browser and sign in to your Pi account.");
@@ -34,6 +32,12 @@ export default function StartPaymentButton() {
       const refreshed = await reauthenticate();
       if (!refreshed) {
         setStatus("Authentication failed. Please try again in Pi Browser.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (typeof Pi.createPayment !== "function") {
+        setStatus("Pi SDK is missing payment capabilities in this environment.");
         setIsLoading(false);
         return;
       }
