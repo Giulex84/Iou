@@ -32,7 +32,7 @@ export default function PiAuthHandler() {
 
         const isPiBrowser =
           typeof window !== "undefined" && typeof navigator !== "undefined"
-            ? navigator.userAgent?.toLowerCase().includes("pibrowser")
+            ? /pibrowser/i.test(navigator.userAgent)
             : false;
 
         const sdk: PiSDK | null = Pi ?? null;

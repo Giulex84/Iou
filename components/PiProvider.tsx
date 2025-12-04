@@ -37,13 +37,11 @@ export default function PiProvider({ children }: { children: ReactNode }) {
   const [authenticating, setAuthenticating] = useState(false);
   const initCalledRef = useRef(false);
 
+  const isPiBrowser =
+    typeof navigator !== "undefined" && /pibrowser/i.test(navigator.userAgent);
+
   const runAuthentication = async (sdk: any) => {
     if (!sdk) return null;
-    const isPiBrowser =
-      typeof navigator !== "undefined"
-        ? navigator.userAgent?.toLowerCase().includes("pibrowser")
-        : false;
-
     if (!isPiBrowser) {
       setUser(null);
       return null;
@@ -87,17 +85,18 @@ export default function PiProvider({ children }: { children: ReactNode }) {
           const script = document.createElement("script");
           script.src = "https://sdk.minepi.com/pi-sdk.js";
           script.async = true;
+          script.crossOrigin = "anonymous";
           document.head.appendChild(script);
         }
 
-        const timeout = window.setTimeout(() => resolve(null), 7000);
+        const timeout = window.setTimeout(() => resolve(null), 10000);
         const poll = window.setInterval(() => {
           if (window.Pi) {
             window.clearTimeout(timeout);
             window.clearInterval(poll);
             resolve(window.Pi);
           }
-        }, 100);
+        }, 150);
       });
 
     const setupPi = async () => {
@@ -108,12 +107,17 @@ export default function PiProvider({ children }: { children: ReactNode }) {
       }
 
       try {
+        const sandboxFlag =
+          process.env.NEXT_PUBLIC_PI_SANDBOX !== "false" ? true : false;
         if (!initCalledRef.current) {
-          sdk.init({
+          await sdk.init({
             version: "2.0",
-            sandbox: true,
+            sandbox: sandboxFlag,
           });
           initCalledRef.current = true;
+        }
+        if (!sdk.authenticate || !sdk.createPayment) {
+          throw new Error("Pi SDK is loaded but missing required methods.");
         }
         setPi(sdk);
         await runAuthentication(sdk);
