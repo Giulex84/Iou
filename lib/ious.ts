@@ -19,16 +19,7 @@ export async function addIou(iou: NewIouPayload): Promise<IOU> {
     transaction_type: iou.transaction_type,
   } satisfies Omit<IOU, "id" | "created_at">;
 
-  const { data, error } = await supabase
-    .from("ious")
-    .insert(payload)
-    .select("*")
-    .single();
-
-  if (error) {
-    console.error("Supabase error (addIou):", error.message);
-    throw error;
-  }
+  const data = await insertWithDescriptionFallback(payload);
 
   return normalizeRow(data);
 }
@@ -57,17 +48,7 @@ export async function updateIou(
   id: string,
   updates: Partial<Omit<IOU, "id" | "created_at">>
 ): Promise<IOU> {
-  const { data, error } = await supabase
-    .from("ious")
-    .update(updates)
-    .eq("id", id)
-    .select("*")
-    .single();
-
-  if (error) {
-    console.error("Supabase error (updateIou):", error.message);
-    throw error;
-  }
+  const data = await updateWithDescriptionFallback(id, updates);
 
   return normalizeRow(data);
 }
@@ -89,6 +70,73 @@ export async function deleteIou(id: string): Promise<boolean> {
 function normalizeRow(row: any): IOU {
   return {
     ...row,
+    description: row?.description ?? "",
     amount: Number(row.amount),
   } as IOU;
+}
+
+function isMissingDescriptionColumn(error: any) {
+  return (
+    typeof error?.message === "string" &&
+    error.message.toLowerCase().includes("description") &&
+    error.message.toLowerCase().includes("schema cache")
+  );
+}
+
+async function insertWithDescriptionFallback(payload: any) {
+  const { data, error } = await supabase
+    .from("ious")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (!error) return data;
+
+  if (isMissingDescriptionColumn(error)) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.description;
+
+    const retry = await supabase
+      .from("ious")
+      .insert(fallbackPayload)
+      .select("*")
+      .single();
+
+    if (!retry.error) return retry.data;
+    console.error("Supabase error after fallback (addIou):", retry.error.message);
+    throw retry.error;
+  }
+
+  console.error("Supabase error (addIou):", error.message);
+  throw error;
+}
+
+async function updateWithDescriptionFallback(id: string, updates: any) {
+  const { data, error } = await supabase
+    .from("ious")
+    .update(updates)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (!error) return data;
+
+  if (isMissingDescriptionColumn(error)) {
+    const fallbackUpdates = { ...updates };
+    delete fallbackUpdates.description;
+
+    const retry = await supabase
+      .from("ious")
+      .update(fallbackUpdates)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (!retry.error) return retry.data;
+    console.error("Supabase error after fallback (updateIou):", retry.error.message);
+    throw retry.error;
+  }
+
+  console.error("Supabase error (updateIou):", error.message);
+  throw error;
 }
