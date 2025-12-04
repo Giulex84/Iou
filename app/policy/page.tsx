@@ -6,45 +6,38 @@ export default function PolicyPage() {
       <h1 className="text-3xl font-bold">Privacy Policy</h1>
 
       <p>
-        La presente Privacy Policy descrive come IOU Ledger Pro raccoglie,
-        utilizza, conserva e protegge le informazioni personali degli utenti.
-        Utilizzando l’app accetti la raccolta e l’uso dei dati in conformità con
-        questa informativa.
+        This Privacy Policy describes how the IOU app collects, uses, stores,
+        and protects user information. By using the app you agree to data
+        collection and use in line with this notice.
       </p>
 
-      <h2>Dati Raccolti</h2>
+      <h2>Data Collected</h2>
       <ul>
-        <li>Dati inseriti manualmente (nomi, importi, note)</li>
-        <li>Valute e categorie utilizzate</li>
-        <li>Informazioni tecniche anonime del dispositivo</li>
+        <li>Manually entered records (descriptions, amounts, counterparty)</li>
+        <li>Transaction type and settled status</li>
+        <li>Anonymous technical information about the device</li>
       </ul>
 
-      <h2>Utilizzo dei Dati</h2>
+      <h2>Use of Data</h2>
       <ul>
-        <li>Miglioramento dell’esperienza utente</li>
-        <li>Memorizzazione degli IOU</li>
-        <li>Sincronizzazione sicura tramite Firebase</li>
+        <li>Improving the user experience</li>
+        <li>Saving IOU records</li>
+        <li>Secure synchronization through Supabase</li>
       </ul>
 
-      <h2>Protezione dei Dati</h2>
-      <p>
-        I dati sono archiviati in maniera sicura tramite Firebase e non vengono
-        condivisi con terze parti non autorizzate.
-      </p>
+      <h2>Data Protection</h2>
+      <p>Data is stored securely via Supabase and is not shared with unauthorised third parties.</p>
 
-      <h2>Diritti dell’Utente</h2>
+      <h2>User Rights</h2>
       <ul>
-        <li>Richiedere l’eliminazione dei dati</li>
-        <li>Richiedere esportazione o correzione</li>
+        <li>Request data deletion</li>
+        <li>Request export or correction</li>
       </ul>
 
-      <h2>Modifiche</h2>
-      <p>
-        La Privacy Policy può essere aggiornata periodicamente. L’uso continuato
-        dell’app implica l’accettazione delle modifiche.
-      </p>
+      <h2>Changes</h2>
+      <p>The Privacy Policy may be updated periodically. Continued use of the app implies acceptance of changes.</p>
 
-      <h2>Contatti</h2>
+      <h2>Contact</h2>
       <p>Email: support@iouledger.app</p>
     </div>
   );

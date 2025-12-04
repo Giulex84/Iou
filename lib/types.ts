@@ -1,10 +1,9 @@
 export type IOU = {
   id?: string;
-  name: string;
+  description: string;
   amount: number;
-  currency: string;
-  category: string;
-  type: string; // "credit" | "debit"
-  paid: boolean;
-  date: string; // ISO date string
+  involved_party: string;
+  is_settled: boolean;
+  transaction_type: "OWE" | "OWED";
+  created_at?: string;
 };

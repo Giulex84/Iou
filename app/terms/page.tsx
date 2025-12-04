@@ -6,43 +6,36 @@ export default function TermsPage() {
       <h1 className="text-3xl font-bold">Terms of Service</h1>
 
       <p>
-        Utilizzando IOU Ledger Pro accetti i presenti Termini di Servizio. Se
-        non accetti, non utilizzare l’app.
+        By using the IOU app you agree to these Terms of Service. If you do not
+        agree, do not use the app.
       </p>
 
-      <h2>Uso Consentito</h2>
+      <h2>Permitted Use</h2>
       <ul>
-        <li>L’app deve essere usata per registrare IOU personali.</li>
-        <li>È vietato un uso illecito o fraudolento.</li>
-        <li>L’utente è responsabile delle informazioni inserite.</li>
+        <li>The app is for recording personal IOUs.</li>
+        <li>Illegal or fraudulent use is prohibited.</li>
+        <li>Users are responsible for the information they enter.</li>
       </ul>
 
-      <h2>Limitazioni</h2>
+      <h2>Limitations</h2>
       <ul>
-        <li>
-          L’app non è responsabile per la perdita di dati derivante da utilizzo
-          improprio.
-        </li>
-        <li>
-          Nessuna garanzia viene fornita sulla disponibilità continua del
-          servizio.
-        </li>
+        <li>The app is not responsible for data loss due to misuse.</li>
+        <li>No guarantee is provided regarding continuous availability.</li>
       </ul>
 
-      <h2>Pagamenti</h2>
+      <h2>Payments</h2>
       <p>
-        Eventuali funzioni premium o pagamenti Pi vengono gestiti esclusivamente
-        tramite i sistemi ufficiali della Pi Network. L’app non memorizza dati
-        bancari.
+        Any premium features or Pi payments are handled exclusively through the
+        official Pi Network systems. The app does not store banking data.
       </p>
 
-      <h2>Modifiche ai Termini</h2>
+      <h2>Changes to the Terms</h2>
       <p>
-        I Termini possono essere aggiornati in qualsiasi momento. Continuando a
-        usare l’app, accetti tali modifiche.
+        Terms may be updated at any time. Continuing to use the app means you
+        accept these changes.
       </p>
 
-      <h2>Contatti</h2>
+      <h2>Contact</h2>
       <p>Email: support@iouledger.app</p>
     </div>
   );

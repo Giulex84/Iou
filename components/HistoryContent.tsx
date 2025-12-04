@@ -7,15 +7,15 @@ export default function HistoryContent() {
   const { ious, loading, error } = useIOUs();
 
   if (loading) {
-    return <p className="text-gray-400">Caricamento IOUs...</p>;
+    return <p className="text-gray-400">Loading IOUs...</p>;
   }
 
   if (error) {
-    return <p className="text-red-400">Errore: {error}</p>;
+    return <p className="text-red-400">Error: {error}</p>;
   }
 
   if (!ious.length) {
-    return <p className="text-gray-400 text-lg">Nessun IOU registrato.</p>;
+    return <p className="text-gray-400 text-lg">No IOUs recorded yet.</p>;
   }
 
   return (
