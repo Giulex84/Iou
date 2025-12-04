@@ -35,16 +35,17 @@ export default function PiProvider({ children }: { children: ReactNode }) {
     setAuthenticating(true);
     try {
       const scopes = ["username", "payments"];
-      const authResult = await sdk.authenticate(scopes, {
-        onIncompletePaymentFound: (payment: unknown) => {
+      const authResult = await sdk.authenticate(
+        scopes,
+        (payment: unknown) => {
           console.warn("Incomplete payment detected", payment);
-        },
-      });
+        }
+      );
 
       setUser(authResult ? authResult.user : null);
       return authResult?.user ?? null;
     } catch (err) {
-      console.error("Pi authenticate error", err);
+      console.error("Pi authenticate error:", err);
       return null;
     } finally {
       setAuthenticating(false);
