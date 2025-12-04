@@ -20,14 +20,12 @@ export default function StartPaymentButton() {
       setIsLoading(true);
       setStatus("Starting Pi test payment…");
 
-      if (!user) {
-        setStatus("Authenticating with Pi for payments…");
-        const refreshed = await reauthenticate();
-        if (!refreshed) {
-          setStatus("Authentication failed. Please try again in Pi Browser.");
-          setIsLoading(false);
-          return;
-        }
+      setStatus("Authenticating with Pi for payments…");
+      const refreshed = await reauthenticate();
+      if (!refreshed) {
+        setStatus("Authentication failed. Please try again in Pi Browser.");
+        setIsLoading(false);
+        return;
       }
 
       await startPiTestPayment();
@@ -65,7 +63,7 @@ export default function StartPaymentButton() {
       >
         {isLoading
           ? "Processing..."
-          : initialized
+          : initialized && Pi
           ? "MAKE A TEST PAYMENT"
           : "Initializing..."}
       </button>

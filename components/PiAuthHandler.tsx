@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from "react";
 
+import { usePi } from "@/components/PiProvider";
+
 import { syncPiProfile, type PiUserProfile } from "@/utils/auth";
 
 type PiSDK = {
@@ -18,6 +20,7 @@ type AuthStatus = "idle" | "loading" | "authenticated" | "error";
 export default function PiAuthHandler() {
   const [status, setStatus] = useState<AuthStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const { Pi, initialized } = usePi();
 
   useEffect(() => {
     let active = true;
@@ -32,13 +35,9 @@ export default function PiAuthHandler() {
             ? navigator.userAgent?.toLowerCase().includes("pibrowser")
             : false;
 
-        const sdk: PiSDK | null = typeof window !== "undefined" ? ((window as any).Pi as PiSDK) : null;
+        const sdk: PiSDK | null = Pi ?? null;
         if (!sdk || !isPiBrowser) {
           throw new Error("Please open the app in Pi Browser to use the Pi SDK.");
-        }
-
-        if (typeof sdk.init === "function") {
-          await sdk.init({ version: "2.0", sandbox: true });
         }
 
         if (typeof sdk.authenticate !== "function") {
@@ -82,12 +81,12 @@ export default function PiAuthHandler() {
       }
     };
 
-    void authenticate();
+    if (initialized) void authenticate();
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [Pi, initialized]);
 
   if (status === "idle") return null;
 
