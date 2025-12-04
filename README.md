@@ -5,7 +5,7 @@ A Pi-styled IOU tracker built with Next.js and React. It stores IOUs in Supabase
 ## Stack Overview
 
 - **Next.js / React** – provides the hybrid app shell, routing, server actions, and the interactive component model that powers each IOU screen.
-- **Supabase** – offers the Postgres database and generated APIs the app uses to persist IOUs with the finalized schema (description, amount, involved_party, transaction_type, is_settled).
+- **Supabase** – offers the Postgres database and generated APIs the app uses to persist IOUs with the finalized schema (description, amount, other_party, direction, created_by_uid, is_settled).
 - **Pi Browser SDK** – delivers Pi-first capabilities so the DApp can authenticate Pi users, launch compliant Pi payments, and run smoothly inside the Pi Browser.
 
 ## Key Technologies

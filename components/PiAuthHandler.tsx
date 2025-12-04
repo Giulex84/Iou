@@ -9,7 +9,7 @@ type PiSDK = {
   init?: (options: { version: string; sandbox?: boolean }) => Promise<void> | void;
   authenticate?: (
     scopes: string[],
-    options: { onIncompletePaymentFound?: (payment: unknown) => void }
+    onIncompletePaymentFound?: (payment: unknown) => void
   ) => Promise<{ user?: { uid?: string; id?: string; username?: string }; accessToken?: string; access_token?: string }>;
 };
 
@@ -45,11 +45,12 @@ export default function PiAuthHandler() {
           throw new Error("The Pi client does not expose an authentication method.");
         }
 
-        const authResult = await sdk.authenticate(["username", "payments"], {
-          onIncompletePaymentFound: (payment: unknown) => {
+        const authResult = await sdk.authenticate(
+          ["username", "payments"],
+          (payment: unknown) => {
             console.warn("Incomplete payment detected", payment);
-          },
-        });
+          }
+        );
 
         if (!authResult?.user) {
           throw new Error("Pi authentication failed.");

@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import { usePi } from "@/components/PiProvider";
+import { usePiPayment } from "@/hooks/usePiPayment";
 
 export default function StartPaymentButton() {
   const { Pi, user, initialized, reauthenticate } = usePi();
+  const { startPiTestPayment } = usePiPayment();
   const [status, setStatus] = useState<string>("Ready for a Pi test payment.");
-  const [serverPaymentId, setServerPaymentId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const startUserToAppPayment = async () => {
@@ -17,107 +18,24 @@ export default function StartPaymentButton() {
       }
 
       setIsLoading(true);
+      setStatus("Starting Pi test payment…");
 
       if (!user) {
-        setStatus("Re-authenticating with payments scope...");
-        const refreshedUser = await reauthenticate();
-        if (!refreshedUser) {
+        setStatus("Authenticating with Pi for payments…");
+        const refreshed = await reauthenticate();
+        if (!refreshed) {
           setStatus("Authentication failed. Please try again in Pi Browser.");
           setIsLoading(false);
           return;
         }
-        setStatus("Authenticated. Creating payment on the server...");
-      } else {
-        setStatus("Creating payment on the server...");
       }
 
-      const initRes = await fetch("/api/pi/initiate-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: 0.001,
-          memo: "IOU test payment",
-          metadata: { reason: "test_payment" },
-        }),
-      });
-
-      const initJson = await initRes.json();
-
-      if (!initRes.ok || !initJson.ok) {
-        console.error("initiate-payment error:", initJson);
-        setStatus(`initiate-payment error: ${JSON.stringify(initJson)}`);
-        setIsLoading(false);
-        return;
-      }
-
-      const newServerPaymentId = initJson.serverPaymentId as string;
-      setServerPaymentId(newServerPaymentId);
-
-      const paymentData = {
-        amount: initJson.amount,
-        memo: initJson.memo ?? "IOU test payment",
-        metadata: { serverPaymentId: newServerPaymentId, reason: "test_payment" },
-      };
-
-      const callbacks = {
-        onReadyForServerApproval: async (paymentId: string) => {
-          setStatus("Server approving payment...");
-
-          const res = await fetch("/api/pi/approve-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              paymentId,
-              serverPaymentId: newServerPaymentId,
-            }),
-          });
-
-          const json = await res.json();
-          if (!res.ok || !json.ok) {
-            console.error("Approval error:", json);
-            setStatus("Error during payment approval.");
-          } else {
-            setStatus("Approved! Waiting for Pi to complete...");
-          }
-        },
-
-        onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-          setStatus("Completing on the server...");
-
-          const res = await fetch("/api/pi/complete-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paymentId, txid, serverPaymentId: newServerPaymentId }),
-          });
-
-          const json = await res.json();
-          if (!res.ok || !json.ok) {
-            console.error("Completion error:", json);
-            setStatus("Error during completion.");
-          } else {
-            setStatus("Payment completed ✅");
-            alert("Test payment completed!");
-          }
-
-          setIsLoading(false);
-        },
-
-        onCancel: () => {
-          setStatus("Payment cancelled by user.");
-          setIsLoading(false);
-        },
-
-        onError: (err: any) => {
-          console.error("❌ Pi error:", err);
-          setStatus("Payment error.");
-          setIsLoading(false);
-        },
-      };
-
-      await Pi.createPayment(paymentData, callbacks);
+      await startPiTestPayment();
+      setStatus("Pi SDK payment flow started. Please approve in the Pi Browser.");
     } catch (err: any) {
       console.error("handlePayment error", err);
       setStatus("Error: " + (err?.message ?? "unknown"));
+    } finally {
       setIsLoading(false);
     }
   };
@@ -131,13 +49,6 @@ export default function StartPaymentButton() {
       {user && (
         <p className="text-xs mb-1">
           User: <span className="font-mono">{user.username}</span>
-        </p>
-      )}
-
-      {serverPaymentId && (
-        <p className="text-[10px] text-gray-400 mb-1">
-          serverPaymentId:{" "}
-          <span className="font-mono break-all">{serverPaymentId}</span>
         </p>
       )}
 

@@ -8,26 +8,27 @@ export default function AddIOUForm() {
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [type, setType] = useState<"OWE" | "OWED">("OWED");
-  const [involvedParty, setInvolvedParty] = useState("");
+  const [type, setType] = useState<"i_owe" | "i_am_owed">("i_am_owed");
+  const [otherParty, setOtherParty] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!description || !amount || !involvedParty) return;
+    if (!description || !amount || !otherParty) return;
 
     await addIou({
       description,
       amount: Number(amount),
-      transaction_type: type,
-      involved_party: involvedParty,
+      direction: type,
+      other_party: otherParty,
+      created_by_uid: null,
       is_settled: false,
     });
 
     setDescription("");
     setAmount("");
-    setType("OWED");
-    setInvolvedParty("");
+    setType("i_am_owed");
+    setOtherParty("");
   }
 
   return (
@@ -37,11 +38,11 @@ export default function AddIOUForm() {
         <button
           type="button"
           className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-            type === "OWED"
+            type === "i_am_owed"
               ? "bg-emerald-500 text-white shadow"
               : "bg-gray-600 text-gray-300"
           }`}
-          onClick={() => setType("OWED")}
+          onClick={() => setType("i_am_owed")}
         >
           <span className="font-black">I am owed</span>
           <br />Keep
@@ -50,11 +51,11 @@ export default function AddIOUForm() {
         <button
           type="button"
           className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-            type === "OWE"
+            type === "i_owe"
               ? "bg-orange-500 text-white shadow"
               : "bg-gray-600 text-gray-300"
           }`}
-          onClick={() => setType("OWE")}
+          onClick={() => setType("i_owe")}
         >
           <span className="font-black">I owe</span>
           <br />Pay
@@ -85,13 +86,13 @@ export default function AddIOUForm() {
       </div>
 
       <div>
-        <label className="text-sm font-medium text-gray-300">Involved party</label>
+        <label className="text-sm font-medium text-gray-300">Other party</label>
         <input
           type="text"
           className="w-full px-4 py-3 rounded-xl bg-white text-black border border-gray-300 focus:ring-blue-500 focus:ring-2"
           placeholder="Who is this with?"
-          value={involvedParty}
-          onChange={(e) => setInvolvedParty(e.target.value)}
+          value={otherParty}
+          onChange={(e) => setOtherParty(e.target.value)}
         />
       </div>
 
