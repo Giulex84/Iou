@@ -6,7 +6,7 @@ import { useIOUs } from "@/components/providers/IOUProvider";
 const currencySymbol = "π";
 
 export default function IouCard({ iou }: { iou: IOU }) {
-  const { togglePaid } = useIOUs();
+  const { setSettlement } = useIOUs();
 
   return (
     <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl border shadow transition-all">
@@ -41,7 +41,7 @@ export default function IouCard({ iou }: { iou: IOU }) {
             ? "bg-emerald-500 text-white hover:bg-emerald-600"
             : "bg-gray-200 text-gray-800 hover:bg-gray-300"
         }`}
-        onClick={() => togglePaid(iou.id!, !iou.is_settled)}
+        onClick={() => setSettlement(iou.id!, !iou.is_settled)}
       >
         {iou.is_settled ? "Mark Unpaid" : "Mark Paid"}
       </button>

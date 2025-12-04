@@ -11,7 +11,7 @@ export default function DashboardContent() {
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <a
             href="/add"
             className="block rounded-2xl bg-amber-400 text-gray-900 p-5 text-center font-semibold shadow-lg shadow-amber-500/40 transition hover:-translate-y-0.5"
@@ -24,6 +24,13 @@ export default function DashboardContent() {
             className="block rounded-2xl bg-gray-800 border border-purple-400/40 text-white p-5 text-center font-semibold shadow-lg transition hover:border-amber-300 hover:-translate-y-0.5"
           >
             📄 IOU History
+          </a>
+
+          <a
+            href="/payment"
+            className="block rounded-2xl bg-gradient-to-br from-purple-700 via-amber-400 to-purple-900 text-gray-900 p-5 text-center font-semibold shadow-lg shadow-amber-500/30 transition hover:-translate-y-0.5"
+          >
+            💫 Make a Test Payment
           </a>
         </div>
       </div>

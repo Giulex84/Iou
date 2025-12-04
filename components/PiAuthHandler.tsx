@@ -47,7 +47,7 @@ export default function PiAuthHandler() {
 
         const authResult = await sdk.authenticate(["username", "payments"], {
           onIncompletePaymentFound: (payment: unknown) => {
-            console.warn("Pagamento incompleto rilevato", payment);
+            console.warn("Incomplete payment detected", payment);
           },
         });
 
