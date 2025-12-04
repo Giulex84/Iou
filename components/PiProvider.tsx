@@ -13,43 +13,18 @@ interface PiContextValue {
   Pi: any | null;
   user: any | null;
   initialized: boolean;
-  reauthenticate: () => Promise<any>;
 }
 
 const PiContext = createContext<PiContextValue>({
   Pi: null,
   user: null,
   initialized: false,
-  reauthenticate: async () => null,
 });
 
 export default function PiProvider({ children }: { children: ReactNode }) {
   const [pi, setPi] = useState<any | null>(null);
-  const [user, setUser] = useState<any | null>(null);
+  const [user, useUser] = useState<any | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [authenticating, setAuthenticating] = useState(false);
-
-  const runAuthentication = async (sdk: any) => {
-    if (!sdk) return null;
-
-    setAuthenticating(true);
-    try {
-      const scopes = ["username", "payments"];
-      const authResult = await sdk.authenticate(scopes, {
-        onIncompletePaymentFound: (payment: unknown) => {
-          console.warn("Incomplete payment detected", payment);
-        },
-      });
-
-      setUser(authResult ? authResult.user : null);
-      return authResult?.user ?? null;
-    } catch (err) {
-      console.error("Pi authenticate error", err);
-      return null;
-    } finally {
-      setAuthenticating(false);
-    }
-  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -62,7 +37,14 @@ export default function PiProvider({ children }: { children: ReactNode }) {
         sandbox: true,
       });
 
-      await runAuthentication(window.Pi);
+      try {
+        const scopes = ["payments"];
+        window.Pi.authenticate(scopes, (authResult: any) => {
+          useUser(authResult ? authResult.user : null);
+        });
+      } catch (err) {
+        console.error("Pi authenticate error", err);
+      }
 
       setPi(window.Pi);
       setInitialized(true);
@@ -83,14 +65,7 @@ export default function PiProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <PiContext.Provider
-      value={{
-        Pi: pi,
-        user,
-        initialized: initialized && !authenticating,
-        reauthenticate: () => runAuthentication(pi),
-      }}
-    >
+    <PiContext.Provider value={{ Pi: pi, user, initialized }}>
       {children}
     </PiContext.Provider>
   );

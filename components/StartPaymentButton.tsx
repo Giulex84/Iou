@@ -4,32 +4,20 @@ import React, { useState } from "react";
 import { usePi } from "@/components/PiProvider";
 
 export default function StartPaymentButton() {
-  const { Pi, user, initialized, reauthenticate } = usePi();
+  const { Pi, user, initialized } = usePi();
   const [status, setStatus] = useState<string>("Ready for a Pi test payment.");
   const [serverPaymentId, setServerPaymentId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const startUserToAppPayment = async () => {
+    if (!Pi) {
+      setStatus("Pi SDK not available. Open in Pi Browser.");
+      return;
+    }
+
     try {
-      if (!Pi) {
-        setStatus("Pi SDK not available. Open in Pi Browser.");
-        return;
-      }
-
       setIsLoading(true);
-
-      if (!user) {
-        setStatus("Re-authenticating with payments scope...");
-        const refreshedUser = await reauthenticate();
-        if (!refreshedUser) {
-          setStatus("Authentication failed. Please try again in Pi Browser.");
-          setIsLoading(false);
-          return;
-        }
-        setStatus("Authenticated. Creating payment on the server...");
-      } else {
-        setStatus("Creating payment on the server...");
-      }
+      setStatus("Creating payment on the server...");
 
       const initRes = await fetch("/api/pi/initiate-payment", {
         method: "POST",
