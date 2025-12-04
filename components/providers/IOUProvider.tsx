@@ -20,18 +20,17 @@ type IOUContextType = {
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  addIou: (iou: Omit<IOU, "id">) => Promise<void>;
-  togglePaid: (id: string, paid: boolean) => Promise<void>;
+  addIou: (iou: Omit<IOU, "id" | "created_at">) => Promise<void>;
+  togglePaid: (id: string, isSettled: boolean) => Promise<void>;
   removeIou: (id: string) => Promise<void>;
 };
 
 const IOUContext = createContext<IOUContextType | undefined>(undefined);
 
-// Hook da usare nei componenti (Add page, History, IouCard ecc.)
 export function useIOUs(): IOUContextType {
   const ctx = useContext(IOUContext);
   if (!ctx) {
-    throw new Error("useIOUs deve essere usato dentro IOUProvider");
+    throw new Error("useIOUs must be used within IOUProvider");
   }
   return ctx;
 }
@@ -41,7 +40,6 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Carica inizialmente tutti gli IOU
   const refresh = async () => {
     try {
       setLoading(true);
@@ -49,7 +47,7 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
       const data = await getIousFromDb();
       setIous(data);
     } catch (err: any) {
-      setError(err.message ?? "Errore caricamento IOUs");
+      setError(err.message ?? "Unable to load IOUs");
     } finally {
       setLoading(false);
     }
@@ -59,24 +57,24 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, []);
 
-  const addIou = async (iou: Omit<IOU, "id">) => {
+  const addIou = async (iou: Omit<IOU, "id" | "created_at">) => {
     try {
       setError(null);
       const saved = await addIouToDb(iou);
       setIous((prev) => [saved, ...prev]);
     } catch (err: any) {
-      setError(err.message ?? "Errore creazione IOU");
+      setError(err.message ?? "Unable to create IOU");
       throw err;
     }
   };
 
-  const togglePaid = async (id: string, paid: boolean) => {
+  const togglePaid = async (id: string, isSettled: boolean) => {
     try {
       setError(null);
-      const updated = await updateIouInDb(id, { paid });
+      const updated = await updateIouInDb(id, { is_settled: isSettled });
       setIous((prev) => prev.map((i) => (i.id === id ? updated : i)));
     } catch (err: any) {
-      setError(err.message ?? "Errore aggiornamento IOU");
+      setError(err.message ?? "Unable to update IOU");
       throw err;
     }
   };
@@ -87,7 +85,7 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
       await deleteIouFromDb(id);
       setIous((prev) => prev.filter((i) => i.id !== id));
     } catch (err: any) {
-      setError(err.message ?? "Errore eliminazione IOU");
+      setError(err.message ?? "Unable to delete IOU");
       throw err;
     }
   };

@@ -34,7 +34,7 @@ export default function PiAuthHandler() {
 
         const sdk: PiSDK | null = typeof window !== "undefined" ? ((window as any).Pi as PiSDK) : null;
         if (!sdk || !isPiBrowser) {
-          throw new Error("Apri l'app nel Pi Browser per utilizzare l'SDK Pi.");
+          throw new Error("Please open the app in Pi Browser to use the Pi SDK.");
         }
 
         if (typeof sdk.init === "function") {
@@ -42,7 +42,7 @@ export default function PiAuthHandler() {
         }
 
         if (typeof sdk.authenticate !== "function") {
-          throw new Error("Il client Pi non espone un metodo di autenticazione.");
+          throw new Error("The Pi client does not expose an authentication method.");
         }
 
         const authResult = await sdk.authenticate(["username", "payments"], {
@@ -52,7 +52,7 @@ export default function PiAuthHandler() {
         });
 
         if (!authResult?.user) {
-          throw new Error("Autenticazione Pi non riuscita.");
+          throw new Error("Pi authentication failed.");
         }
 
         const profile: PiUserProfile = {
@@ -62,7 +62,7 @@ export default function PiAuthHandler() {
         };
 
         if (!profile.uid) {
-          throw new Error("Identificativo utente Pi mancante.");
+          throw new Error("Missing Pi user identifier.");
         }
 
         await syncPiProfile(profile);
@@ -72,7 +72,11 @@ export default function PiAuthHandler() {
       } catch (err) {
         console.error(err);
         if (!active) return;
-        setError(err instanceof Error ? err.message : "Errore imprevisto durante l'autenticazione.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unexpected error during authentication."
+        );
         setStatus("error");
       }
     };
@@ -88,8 +92,8 @@ export default function PiAuthHandler() {
 
   return (
     <div className="rounded-md bg-gray-800/50 p-3 text-sm text-gray-200">
-      {status === "loading" && "Connessione a Pi in corso..."}
-      {status === "authenticated" && "Account Pi sincronizzato con Supabase."}
+      {status === "loading" && "Connecting to Pi..."}
+      {status === "authenticated" && "Pi account synced with Supabase."}
       {status === "error" && error}
     </div>
   );
