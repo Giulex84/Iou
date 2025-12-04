@@ -20,11 +20,11 @@ export default function IouCard({ iou }: { iou: IOU }) {
       </p>
 
       <p className="text-xs text-gray-500">
-        {iou.transaction_type === "OWED" ? "owes me" : "I owe"}
+        {iou.direction === "i_am_owed" ? "owes me" : "I owe"}
       </p>
 
       <div className="flex flex-wrap items-center gap-2 mt-2">
-        <span className="text-gray-500 text-xs">With: {iou.involved_party}</span>
+        <span className="text-gray-500 text-xs">With: {iou.other_party}</span>
         <span className="text-gray-400">
           {new Date(iou.created_at ?? Date.now()).toLocaleDateString()}
         </span>

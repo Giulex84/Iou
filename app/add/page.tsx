@@ -3,28 +3,30 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useIOUs } from "@/components/providers/IOUProvider";
+import { usePi } from "@/components/PiProvider";
 
 export default function AddPage() {
   const router = useRouter();
   const { addIou, loading, error } = useIOUs();
+  const { user } = usePi();
 
   const [description, setDescription] = useState("");
-  const [involvedParty, setInvolvedParty] = useState("");
+  const [otherParty, setOtherParty] = useState("");
   const [amount, setAmount] = useState<number | "">("");
-  const [transactionType, setTransactionType] = useState<"OWE" | "OWED">(
-    "OWED"
-  );
+  const [transactionType, setTransactionType] = useState<
+    "i_owe" | "i_am_owed"
+  >("i_am_owed");
   const [showSuccess, setShowSuccess] = useState(false);
 
   const isValid = useMemo(
     () =>
       Boolean(
         description.trim() &&
-          involvedParty.trim() &&
+          otherParty.trim() &&
           amount !== "" &&
           Number(amount) > 0
       ),
-    [amount, description, involvedParty]
+    [amount, description, otherParty]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,17 +36,18 @@ export default function AddPage() {
     try {
       await addIou({
         description: description.trim(),
-        involved_party: involvedParty.trim(),
+        other_party: otherParty.trim(),
         amount: Number(amount),
-        transaction_type: transactionType,
+        direction: transactionType,
+        created_by_uid: user?.uid ?? user?.id ?? null,
         is_settled: false,
       });
 
       setShowSuccess(true);
       setDescription("");
-      setInvolvedParty("");
+      setOtherParty("");
       setAmount("");
-      setTransactionType("OWED");
+      setTransactionType("i_am_owed");
 
       setTimeout(() => {
         router.push("/history");
@@ -109,8 +112,8 @@ export default function AddPage() {
               <label className="block text-sm font-semibold text-purple-100">Involved party</label>
               <input
                 type="text"
-                value={involvedParty}
-                onChange={(e) => setInvolvedParty(e.target.value)}
+                value={otherParty}
+                onChange={(e) => setOtherParty(e.target.value)}
                 className="w-full rounded-2xl border border-purple-500/40 bg-black/30 px-4 py-3 text-white placeholder:text-purple-200/50 focus:border-amber-300 focus:ring-2 focus:ring-amber-300/50"
                 placeholder="Who is this IOU with?"
                 required
@@ -122,9 +125,9 @@ export default function AddPage() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setTransactionType("OWED")}
+                  onClick={() => setTransactionType("i_am_owed")}
                   className={`rounded-2xl px-4 py-3 text-left border transition-all shadow-lg ${
-                    transactionType === "OWED"
+                    transactionType === "i_am_owed"
                       ? "bg-emerald-500/20 border-emerald-300 text-emerald-50 shadow-emerald-500/30"
                       : "bg-black/30 border-purple-500/30 text-purple-100/80"
                   }`}
@@ -134,9 +137,9 @@ export default function AddPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTransactionType("OWE")}
+                  onClick={() => setTransactionType("i_owe")}
                   className={`rounded-2xl px-4 py-3 text-left border transition-all shadow-lg ${
-                    transactionType === "OWE"
+                    transactionType === "i_owe"
                       ? "bg-rose-500/20 border-rose-300 text-rose-50 shadow-rose-500/30"
                       : "bg-black/30 border-purple-500/30 text-purple-100/80"
                   }`}

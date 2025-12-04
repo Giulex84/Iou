@@ -43,9 +43,10 @@ export default function PiProvider({ children }: { children: ReactNode }) {
       );
 
       setUser(authResult ? authResult.user : null);
-      return authResult?.user ?? null;
+      return authResult ?? null;
     } catch (err) {
       console.error("Pi authenticate error:", err);
+      setUser(null);
       return null;
     } finally {
       setAuthenticating(false);
@@ -63,9 +64,8 @@ export default function PiProvider({ children }: { children: ReactNode }) {
         sandbox: true,
       });
 
-      await runAuthentication(window.Pi);
-
       setPi(window.Pi);
+      await runAuthentication(window.Pi);
       setInitialized(true);
     };
 
@@ -89,7 +89,7 @@ export default function PiProvider({ children }: { children: ReactNode }) {
         Pi: pi,
         user,
         initialized: initialized && !authenticating,
-        reauthenticate: () => runAuthentication(pi),
+        reauthenticate: () => (pi ? runAuthentication(pi) : Promise.resolve(null)),
       }}
     >
       {children}

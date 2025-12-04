@@ -8,10 +8,10 @@ export default function HistoryPage() {
 
   const totals = useMemo(() => {
     const owedToMe = ious
-      .filter((iou) => iou.transaction_type === "OWED")
+      .filter((iou) => iou.direction === "i_am_owed")
       .reduce((sum, iou) => sum + iou.amount, 0);
     const iOwe = ious
-      .filter((iou) => iou.transaction_type === "OWE")
+      .filter((iou) => iou.direction === "i_owe")
       .reduce((sum, iou) => sum + iou.amount, 0);
 
     return { owedToMe, iOwe, balance: owedToMe - iOwe };
@@ -95,12 +95,12 @@ export default function HistoryPage() {
                 <p className="text-white font-semibold text-lg">{iou.description}</p>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    iou.transaction_type === "OWED"
+                    iou.direction === "i_am_owed"
                       ? "bg-emerald-500/20 text-emerald-100 border border-emerald-400/50"
                       : "bg-rose-500/20 text-rose-100 border border-rose-400/50"
                   }`}
                 >
-                  {iou.transaction_type === "OWED" ? "I Am Owed" : "I Owe"}
+                  {iou.direction === "i_am_owed" ? "I Am Owed" : "I Owe"}
                 </span>
                 {iou.is_settled && (
                   <span className="rounded-full bg-emerald-500/20 text-emerald-100 border border-emerald-400/40 px-2 py-1 text-xs font-semibold">
@@ -108,7 +108,7 @@ export default function HistoryPage() {
                   </span>
                 )}
               </div>
-              <p className="text-gray-300 text-sm">With: {iou.involved_party}</p>
+              <p className="text-gray-300 text-sm">With: {iou.other_party}</p>
               <p className="text-gray-400 text-xs">
                 {new Date(iou.created_at ?? Date.now()).toLocaleDateString("en-US", {
                   year: "numeric",
