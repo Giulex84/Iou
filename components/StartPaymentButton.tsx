@@ -5,11 +5,11 @@ import { usePi } from "@/components/PiProvider";
 
 export default function StartPaymentButton() {
   const { Pi, user, initialized } = usePi();
-  const [status, setStatus] = useState<string>("Ready for a test payment.");
+  const [status, setStatus] = useState<string>("Ready for a Pi test payment.");
   const [serverPaymentId, setServerPaymentId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlePayment = async () => {
+  const startUserToAppPayment = async () => {
     if (!Pi) {
       setStatus("Pi SDK not available. Open in Pi Browser.");
       return;
@@ -19,13 +19,12 @@ export default function StartPaymentButton() {
       setIsLoading(true);
       setStatus("Creating payment on the server...");
 
-      // 1️⃣ CREATE THE PAYMENT ON THE SERVER
       const initRes = await fetch("/api/pi/initiate-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 1,
-          memo: "Test payment (IOU)",
+          amount: 0.001,
+          memo: "IOU test payment",
           metadata: { reason: "test_payment" },
         }),
       });
@@ -39,20 +38,17 @@ export default function StartPaymentButton() {
         return;
       }
 
-      const newServerPaymentId = initJson.serverPaymentId;
+      const newServerPaymentId = initJson.serverPaymentId as string;
       setServerPaymentId(newServerPaymentId);
 
-      // DATA FOR PI SDK
       const paymentData = {
-        amount: 1,
-        memo: "Test payment (IOU)",
-        metadata: { serverPaymentId: newServerPaymentId },
+        amount: initJson.amount,
+        memo: initJson.memo ?? "IOU test payment",
+        metadata: { serverPaymentId: newServerPaymentId, reason: "test_payment" },
       };
 
-      // PI SDK CALLBACKS
       const callbacks = {
         onReadyForServerApproval: async (paymentId: string) => {
-          console.log("➡️ onReadyForServerApproval", paymentId);
           setStatus("Server approving payment...");
 
           const res = await fetch("/api/pi/approve-payment", {
@@ -60,6 +56,7 @@ export default function StartPaymentButton() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               paymentId,
+              serverPaymentId: newServerPaymentId,
             }),
           });
 
@@ -73,13 +70,12 @@ export default function StartPaymentButton() {
         },
 
         onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-          console.log("➡️ onReadyForServerCompletion", paymentId, txid);
           setStatus("Completing on the server...");
 
           const res = await fetch("/api/pi/complete-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paymentId, txid }),
+            body: JSON.stringify({ paymentId, txid, serverPaymentId: newServerPaymentId }),
           });
 
           const json = await res.json();
@@ -106,7 +102,6 @@ export default function StartPaymentButton() {
         },
       };
 
-      // 2️⃣ START THE PAYMENT IN PI SDK
       await Pi.createPayment(paymentData, callbacks);
     } catch (err: any) {
       console.error("handlePayment error", err);
@@ -119,7 +114,7 @@ export default function StartPaymentButton() {
 
   return (
     <div className="my-6 p-4 border-2 border-yellow-400 bg-black rounded-lg text-white max-w-md mx-auto">
-      <h3 className="text-lg font-bold text-yellow-400 mb-2">Pi Test Payment (1 π)</h3>
+      <h3 className="text-lg font-bold text-yellow-400 mb-2">Pi Test Payment (0.001 π)</h3>
 
       {user && (
         <p className="text-xs mb-1">
@@ -137,7 +132,7 @@ export default function StartPaymentButton() {
       <p className="text-xs mb-3">Status: {status}</p>
 
       <button
-        onClick={handlePayment}
+        onClick={startUserToAppPayment}
         disabled={disabled}
         className={`w-full py-3 px-4 rounded font-bold text-lg ${
           disabled
@@ -148,7 +143,7 @@ export default function StartPaymentButton() {
         {isLoading
           ? "Processing..."
           : initialized
-          ? "TEST PAYMENT (1 π)"
+          ? "MAKE A TEST PAYMENT"
           : "Initializing..."}
       </button>
     </div>

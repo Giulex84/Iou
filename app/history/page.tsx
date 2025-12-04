@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useIOUs } from "@/components/providers/IOUProvider";
 
 export default function HistoryPage() {
-  const { ious, loading, error, removeIou, refresh, togglePaid } = useIOUs();
+  const { ious, loading, error, removeIou, refresh, setSettlement } = useIOUs();
 
   const totals = useMemo(() => {
     const owedToMe = ious
@@ -27,7 +27,7 @@ export default function HistoryPage() {
   };
 
   const handleToggleSettled = async (id: string, isSettled: boolean) => {
-    await togglePaid(id, !isSettled);
+    await setSettlement(id, !isSettled);
   };
 
   return (

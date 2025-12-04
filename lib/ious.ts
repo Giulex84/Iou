@@ -2,12 +2,15 @@
 import { supabase } from "./supabase";
 import type { IOU } from "./types";
 
+export type NewIouPayload = Pick<
+  IOU,
+  "description" | "amount" | "involved_party" | "transaction_type" | "is_settled"
+>;
+
 // ------------------------------
 // CREA IOU
 // ------------------------------
-export async function addIou(
-  iou: Omit<IOU, "id" | "created_at">
-): Promise<IOU> {
+export async function addIou(iou: NewIouPayload): Promise<IOU> {
   const payload = {
     description: iou.description,
     amount: iou.amount,

@@ -8,6 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 import type { IOU } from "@/lib/types";
+import type { NewIouPayload } from "@/lib/ious";
 import {
   addIou as addIouToDb,
   getIous as getIousFromDb,
@@ -20,8 +21,8 @@ type IOUContextType = {
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  addIou: (iou: Omit<IOU, "id" | "created_at">) => Promise<void>;
-  togglePaid: (id: string, isSettled: boolean) => Promise<void>;
+  addIou: (iou: NewIouPayload) => Promise<void>;
+  setSettlement: (id: string, isSettled: boolean) => Promise<void>;
   removeIou: (id: string) => Promise<void>;
 };
 
@@ -57,7 +58,7 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, []);
 
-  const addIou = async (iou: Omit<IOU, "id" | "created_at">) => {
+  const addIou = async (iou: NewIouPayload) => {
     try {
       setError(null);
       const saved = await addIouToDb(iou);
@@ -68,7 +69,7 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const togglePaid = async (id: string, isSettled: boolean) => {
+  const setSettlement = async (id: string, isSettled: boolean) => {
     try {
       setError(null);
       const updated = await updateIouInDb(id, { is_settled: isSettled });
@@ -92,7 +93,7 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
 
   return (
     <IOUContext.Provider
-      value={{ ious, loading, error, refresh, addIou, togglePaid, removeIou }}
+      value={{ ious, loading, error, refresh, addIou, setSettlement, removeIou }}
     >
       {children}
     </IOUContext.Provider>
