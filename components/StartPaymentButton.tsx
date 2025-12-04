@@ -17,6 +17,16 @@ export default function StartPaymentButton() {
         return;
       }
 
+      const isPiBrowser =
+        typeof navigator !== "undefined"
+          ? navigator.userAgent?.toLowerCase().includes("pibrowser")
+          : false;
+
+      if (!isPiBrowser) {
+        setStatus("Open this page in Pi Browser and sign in to your Pi account.");
+        return;
+      }
+
       setIsLoading(true);
       setStatus("Starting Pi test payment…");
 
