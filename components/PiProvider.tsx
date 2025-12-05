@@ -23,7 +23,7 @@ interface PiContextValue {
   initialized: boolean;
   piBrowser: boolean;
   piReady: boolean;
-  reauthenticate: () => Promise<any>;
+  reauthenticate: () => Promise<{ user: any; accessToken: string } | null>;
 }
 
 const PiContext = createContext<PiContextValue>({
@@ -74,7 +74,9 @@ export default function PiProvider({ children }: { children: ReactNode }) {
   const [piReady, setPiReady] = useState(false);
   const initCalledRef = useRef(false);
 
-  const runAuthentication = async (sdk: any) => {
+  const runAuthentication = async (
+    sdk: any
+  ): Promise<{ user: any; accessToken: string } | null> => {
     if (!sdk || !piReady) return null;
 
     setAuthenticating(true);
@@ -87,8 +89,15 @@ export default function PiProvider({ children }: { children: ReactNode }) {
         }
       );
 
-      setUser(authResult ? authResult.user : null);
-      return authResult ?? null;
+      const accessToken = authResult?.accessToken ?? authResult?.access_token;
+      const user = authResult?.user ?? null;
+
+      if (!user || !accessToken) {
+        throw new Error("Pi authentication did not return a user or access token.");
+      }
+
+      setUser(user);
+      return { user, accessToken };
     } catch (err) {
       console.error("Pi authenticate error:", err);
       setUser(null);
