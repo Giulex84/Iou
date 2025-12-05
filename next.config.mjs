@@ -1,12 +1,12 @@
 /** @type {import('next').NextConfig} */
-const csp = `
-  default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.minepi.com;
-  connect-src 'self' https://api.minepi.com https://socialchain.network https://socialchain.app https://api.socialchain.app https://k8s-mainnet-fe.piapps-network.org https://api.pinet.minepi.com;
-  img-src 'self' data: blob:;
-  style-src 'self' 'unsafe-inline';
-  frame-ancestors 'self';
-`;
+const csp = [
+  "default-src 'self';",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.minepi.com;",
+  "connect-src 'self' https://sdk.minepi.com https://api.minepi.com https://api.pinet.minepi.com https://socialchain.network https://socialchain.app https://api.socialchain.app https://k8s-mainnet-fe.piapps-network.org;",
+  "img-src 'self' data: blob:;",
+  "style-src 'self' 'unsafe-inline';",
+  "frame-ancestors 'self';",
+].join(" ");
 
 const nextConfig = {
   eslint: {

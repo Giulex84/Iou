@@ -5,23 +5,20 @@ import { usePi } from "@/components/PiProvider";
 import { usePiPayment } from "@/hooks/usePiPayment";
 
 export default function StartPaymentButton() {
-  const { Pi, user, initialized, reauthenticate } = usePi();
+  const { Pi, user, initialized, reauthenticate, piBrowser, piReady } = usePi();
   const { startPiTestPayment } = usePiPayment();
   const [status, setStatus] = useState<string>("Ready for a Pi test payment.");
   const [isLoading, setIsLoading] = useState(false);
 
   const startUserToAppPayment = async () => {
     try {
-      if (!Pi) {
-        setStatus("Pi SDK not available. Open in Pi Browser.");
+      if (!piBrowser && !piReady) {
+        setStatus("Open this page in Pi Browser and sign in to your Pi account.");
         return;
       }
 
-      const isPiBrowser =
-        typeof navigator !== "undefined" ? /pibrowser/i.test(navigator.userAgent) : false;
-
-      if (!isPiBrowser) {
-        setStatus("Open this page in Pi Browser and sign in to your Pi account.");
+      if (!Pi || !piReady) {
+        setStatus("Pi SDK is still loading in Pi Browser. Please try again.");
         return;
       }
 
@@ -52,7 +49,7 @@ export default function StartPaymentButton() {
     }
   };
 
-  const disabled = !initialized || !Pi || isLoading;
+  const disabled = !initialized || !piReady || isLoading;
 
   return (
     <div className="my-6 p-4 border-2 border-yellow-400 bg-black rounded-lg text-white max-w-md mx-auto">
