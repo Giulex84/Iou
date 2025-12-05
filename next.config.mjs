@@ -39,6 +39,25 @@ const csp = [
   "frame-ancestors 'self'",
 ].map((directive) => `${directive};`).join(" ");
 
+const securityHeaders = [
+  {
+    key: "Access-Control-Allow-Origin",
+    value: "*",
+  },
+  {
+    key: "Access-Control-Allow-Headers",
+    value: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  },
+];
+
+// Temporarily disable CSP to avoid ERR_BLOCKED_BY_RESPONSE; toggle via ENABLE_CSP.
+if (process.env.ENABLE_CSP === "true") {
+  securityHeaders.push({
+    key: "Content-Security-Policy",
+    value: csp.replace(/\s{2,}/g, " ").trim(),
+  });
+}
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -53,21 +72,7 @@ const nextConfig = {
     return [
       {
         source: "/(.*)",
-        headers: [
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*",
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value:
-              "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: csp.replace(/\s{2,}/g, " ").trim(),
-          },
-        ],
+        headers: securityHeaders,
       },
     ];
   },
