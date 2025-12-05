@@ -19,10 +19,10 @@ export function usePiPayment() {
 
     const paymentCallbacks = {
       onReadyForServerApproval: async (paymentId: string) => {
-        const res = await fetch("/api/pi/approve-payment", {
+        const res = await fetch("/api/payment/approve", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentId, serverPaymentId: paymentId }),
+          body: JSON.stringify({ paymentId }),
         });
 
         if (!res.ok) {
@@ -33,10 +33,10 @@ export function usePiPayment() {
         }
       },
       onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-        const res = await fetch("/api/pi/complete-payment", {
+        const res = await fetch("/api/payment/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentId, txid, serverPaymentId: paymentId }),
+          body: JSON.stringify({ paymentId, txid }),
         });
 
         if (!res.ok) {
@@ -48,7 +48,7 @@ export function usePiPayment() {
       },
       onCancel: async (paymentId: string) => {
         console.warn("Pi payment cancelled", paymentId);
-        await fetch("/api/pi/cancel-payment", {
+        await fetch("/api/payment/cancel", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ paymentId }),
