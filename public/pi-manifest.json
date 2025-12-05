@@ -1,0 +1,13 @@
+{
+  "name": "IOU Pi DApp",
+  "description": "A Pi-first IOU tracker that authenticates Pi users and supports user-to-app payments.",
+  "iconUrl": "/icon.svg",
+  "appUrl": "/",
+  "permissions": ["username", "payments"],
+  "supportedPaymentTypes": ["user_to_app"],
+  "sdkVersion": "2.0",
+  "sandbox": true,
+  "termsUrl": "/terms",
+  "privacyUrl": "/policy",
+  "category": "finance"
+}

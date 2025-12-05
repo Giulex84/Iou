@@ -9,6 +9,12 @@ import IOUProvider from "@/components/providers/IOUProvider";
 export const metadata: Metadata = {
   title: "IOU",
   description: "Track and manage your IOUs across currencies.",
+  applicationName: "IOU Pi DApp",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/placeholder-logo.png",
+  },
 };
 
 export const viewport: Viewport = {
