@@ -27,8 +27,10 @@ export default function StartPaymentButton() {
 
       setStatus("Authenticating with Pi for payments…");
       const refreshed = await reauthenticate();
-      if (!refreshed) {
-        setStatus("Authentication failed. Please try again in Pi Browser.");
+      if (!refreshed?.accessToken) {
+        setStatus(
+          "Authentication failed or missing payment scope. Please retry in Pi Browser."
+        );
         setIsLoading(false);
         return;
       }
