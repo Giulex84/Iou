@@ -18,5 +18,14 @@ A Pi-styled IOU tracker built with Next.js and React. It stores IOUs in Supabase
 
 1. Install dependencies with `npm install`.
 2. Run the development server with `npm run dev` and open the Pi Browser or your browser at the shown URL.
-3. Update Supabase credentials in `lib/supabase.ts` to point to your project.
-4. Deploy with your preferred Next.js hosting provider.
+3. Set `NEXT_PUBLIC_PI_SANDBOX=true` (default) and provide `PI_TESTNET_API_KEY` so payments run in the official Pi testnet sandbox.
+4. Update Supabase credentials in `lib/supabase.ts` to point to your project.
+5. Deploy with your preferred Next.js hosting provider.
+
+## Compliance Checklist
+
+- Pi SDK is loaded in `app/layout.tsx` with `PiProvider` enforcing Pi Browser usage and authentication before payment flows.
+- Payments are created with the SDK in `hooks/usePiPayment.ts` and completed server-side through `/api/payment/*` routes using the sandbox API by default (`NEXT_PUBLIC_PI_SANDBOX=true`).
+- `PI_TESTNET_API_KEY` is required for server payment actions; production can switch to mainnet by setting `NEXT_PUBLIC_PI_SANDBOX=false` and `PI_API_KEY`.
+- The UI is designed to run inside Pi Browser, surfacing authentication status and test-payment prompts so the DApp is review-ready for the Pi Core Team.
+- Legacy `/api/pi/*` endpoints and unused history components have been removed so only the compliant Pi payment flow ships in the app bundle.
