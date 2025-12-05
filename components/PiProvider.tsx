@@ -77,7 +77,7 @@ export default function PiProvider({ children }: { children: ReactNode }) {
   const runAuthentication = async (
     sdk: any
   ): Promise<{ user: any; accessToken: string } | null> => {
-    if (!sdk || !piReady) return null;
+    if (!sdk || typeof sdk?.authenticate !== "function") return null;
 
     setAuthenticating(true);
     try {
@@ -162,11 +162,10 @@ export default function PiProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       const sdkPresent = Boolean(sdk);
-      const ready = Boolean(sdk?.authenticate && sdk?.createPayment);
-      setPiReady(ready);
 
       if (!sdkPresent) {
         setPi(null);
+        setPiReady(false);
         if (!inferredPiBrowser) {
           setInitialized(true);
         }
@@ -184,6 +183,9 @@ export default function PiProvider({ children }: { children: ReactNode }) {
           });
           initCalledRef.current = true;
         }
+
+        const ready = Boolean(sdk?.authenticate && sdk?.createPayment);
+        setPiReady(ready);
 
         if (!ready) {
           throw new Error("Pi SDK is loaded but missing required methods.");
@@ -203,7 +205,7 @@ export default function PiProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [piReady]);
+  }, []);
 
   return (
     <PiContext.Provider
