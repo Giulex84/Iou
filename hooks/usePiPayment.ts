@@ -4,10 +4,12 @@ import { useCallback } from "react";
 import { usePi } from "@/components/PiProvider";
 
 export function usePiPayment() {
-  const { Pi } = usePi();
+  const { Pi, piReady } = usePi();
 
   const startPiTestPayment = useCallback(async () => {
-    if (!Pi) throw new Error("Pi SDK not initialized");
+    if (!Pi || !piReady || typeof Pi.createPayment !== "function") {
+      throw new Error("Pi SDK not initialized or not ready for payments");
+    }
 
     const paymentData = {
       amount: 0.001,
@@ -58,7 +60,7 @@ export function usePiPayment() {
     };
 
     return Pi.createPayment(paymentData, paymentCallbacks);
-  }, [Pi]);
+  }, [Pi, piReady]);
 
   return { startPiTestPayment };
 }

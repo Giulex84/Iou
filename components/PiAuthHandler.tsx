@@ -20,7 +20,7 @@ type AuthStatus = "idle" | "loading" | "authenticated" | "error";
 export default function PiAuthHandler() {
   const [status, setStatus] = useState<AuthStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  const { Pi, initialized } = usePi();
+  const { Pi, initialized, piBrowser, piReady } = usePi();
 
   useEffect(() => {
     let active = true;
@@ -30,18 +30,29 @@ export default function PiAuthHandler() {
         setStatus("loading");
         setError(null);
 
-        const isPiBrowser =
-          typeof window !== "undefined" && typeof navigator !== "undefined"
-            ? /pibrowser/i.test(navigator.userAgent)
-            : false;
+        let sdk: PiSDK | null =
+          Pi ?? (typeof window !== "undefined" ? ((window as any).Pi as PiSDK | null) ?? null : null);
+        const inPiBrowser = piBrowser || typeof sdk === "object";
 
-        const sdk: PiSDK | null = Pi ?? null;
-        if (!sdk || !isPiBrowser) {
+        if (!inPiBrowser) {
           throw new Error("Please open the app in Pi Browser to use the Pi SDK.");
         }
 
-        if (typeof sdk.authenticate !== "function") {
-          throw new Error("The Pi client does not expose an authentication method.");
+        const startedAt = Date.now();
+        while (active && Date.now() - startedAt < 12000) {
+          sdk =
+            Pi ??
+            (typeof window !== "undefined" ? ((window as any).Pi as PiSDK | null) ?? null : null);
+
+          if (sdk && piReady && typeof sdk.authenticate === "function") break;
+
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+
+        if (!sdk || !piReady || typeof sdk.authenticate !== "function") {
+          throw new Error(
+            "Pi SDK is still initializing. Please stay on this page in Pi Browser."
+          );
         }
 
         const authResult = await sdk.authenticate(
@@ -86,7 +97,7 @@ export default function PiAuthHandler() {
     return () => {
       active = false;
     };
-  }, [Pi, initialized]);
+  }, [Pi, initialized, piBrowser, piReady]);
 
   if (status === "idle") return null;
 

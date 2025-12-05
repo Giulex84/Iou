@@ -7,6 +7,7 @@ import {
   useState,
   createContext,
   useContext,
+  useMemo,
   type ReactNode,
 } from "react";
 
@@ -20,6 +21,8 @@ interface PiContextValue {
   Pi: any | null;
   user: any | null;
   initialized: boolean;
+  piBrowser: boolean;
+  piReady: boolean;
   reauthenticate: () => Promise<any>;
 }
 
@@ -27,25 +30,52 @@ const PiContext = createContext<PiContextValue>({
   Pi: null,
   user: null,
   initialized: false,
+  piBrowser: false,
+  piReady: false,
   reauthenticate: async () => null,
 });
+
+const sdkScriptSrc = "https://sdk.minepi.com/pi-sdk.js";
+
+const detectPiBrowser = () => {
+  if (typeof navigator === "undefined") return false;
+
+  const ua = navigator.userAgent?.toLowerCase?.() ?? "";
+  const userAgentHint = /pibrowser/.test(ua) || ua.includes("pi browser");
+
+  const brandHints = (navigator as any).userAgentData?.brands ?? [];
+  const brandMatches = Array.isArray(brandHints)
+    ? brandHints.some((brand: any) => /pibrowser/i.test(brand?.brand ?? ""))
+    : false;
+
+  const hasReactNativeBridge =
+    typeof window !== "undefined" &&
+    typeof (window as any).ReactNativeWebView !== "undefined";
+
+  const piNamespacePresent =
+    typeof window !== "undefined" && typeof window.Pi === "object";
+
+  // Some Samsung WebView builds strip UA hints; keep the check lenient if we
+  // already see the RN bridge or Pi namespace.
+  return (
+    userAgentHint ||
+    brandMatches ||
+    piNamespacePresent ||
+    (hasReactNativeBridge && /samsung/i.test(ua))
+  );
+};
 
 export default function PiProvider({ children }: { children: ReactNode }) {
   const [pi, setPi] = useState<any | null>(null);
   const [user, setUser] = useState<any | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
+  const [piBrowser, setPiBrowser] = useState(false);
+  const [piReady, setPiReady] = useState(false);
   const initCalledRef = useRef(false);
 
-  const isPiBrowser =
-    typeof navigator !== "undefined" && /pibrowser/i.test(navigator.userAgent);
-
   const runAuthentication = async (sdk: any) => {
-    if (!sdk) return null;
-    if (!isPiBrowser) {
-      setUser(null);
-      return null;
-    }
+    if (!sdk || !piReady) return null;
 
     setAuthenticating(true);
     try {
@@ -68,57 +98,88 @@ export default function PiProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const waitForPiSdk = () =>
+    new Promise<any | null>((resolve) => {
+      if (typeof window === "undefined") return resolve(null);
+
+      let resolved = false;
+      const finish = (sdk: any | null) => {
+        if (resolved) return;
+        resolved = true;
+        cleanup();
+        resolve(sdk);
+      };
+
+      const ensureScript = () => {
+        const existingScript = document.querySelector(`script[src="${sdkScriptSrc}"]`);
+        if (existingScript) return;
+        const script = document.createElement("script");
+        script.src = sdkScriptSrc;
+        script.async = true;
+        script.crossOrigin = "anonymous";
+        document.head.appendChild(script);
+      };
+
+      const cleanup = () => {
+        window.removeEventListener("pi_activated", activatedListener);
+        window.clearInterval(pollId);
+        window.clearTimeout(timeoutId);
+      };
+
+      const activatedListener = () => finish(window.Pi ?? null);
+
+      ensureScript();
+
+      const pollId = window.setInterval(() => {
+        if (window.Pi) finish(window.Pi);
+        else ensureScript();
+      }, 250);
+
+      window.addEventListener("pi_activated", activatedListener);
+
+      const timeoutId = window.setTimeout(() => finish(window.Pi ?? null), 20000);
+    });
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     let cancelled = false;
 
-    const waitForPiSdk = () =>
-      new Promise<any | null>((resolve) => {
-        if (window.Pi) return resolve(window.Pi);
-
-        // Ensure the SDK script exists even if Next.js hydration skipped it for some reason.
-        const existingScript = document.querySelector(
-          'script[src="https://sdk.minepi.com/pi-sdk.js"]'
-        );
-        if (!existingScript) {
-          const script = document.createElement("script");
-          script.src = "https://sdk.minepi.com/pi-sdk.js";
-          script.async = true;
-          script.crossOrigin = "anonymous";
-          document.head.appendChild(script);
-        }
-
-        const timeout = window.setTimeout(() => resolve(null), 10000);
-        const poll = window.setInterval(() => {
-          if (window.Pi) {
-            window.clearTimeout(timeout);
-            window.clearInterval(poll);
-            resolve(window.Pi);
-          }
-        }, 150);
-      });
-
     const setupPi = async () => {
+      const inferredPiBrowser = detectPiBrowser();
+      setPiBrowser(inferredPiBrowser);
+
       const sdk = await waitForPiSdk();
-      if (!sdk || cancelled) {
-        setInitialized(true);
+      if (cancelled) return;
+
+      const sdkPresent = Boolean(sdk);
+      const ready = Boolean(sdk?.authenticate && sdk?.createPayment);
+      setPiReady(ready);
+
+      if (!sdkPresent) {
+        setPi(null);
+        if (!inferredPiBrowser) {
+          setInitialized(true);
+        }
         return;
       }
 
       try {
         const sandboxFlag =
           process.env.NEXT_PUBLIC_PI_SANDBOX !== "false" ? true : false;
-        if (!initCalledRef.current) {
+
+        if (!initCalledRef.current && typeof sdk?.init === "function") {
           await sdk.init({
             version: "2.0",
             sandbox: sandboxFlag,
           });
           initCalledRef.current = true;
         }
-        if (!sdk.authenticate || !sdk.createPayment) {
+
+        if (!ready) {
           throw new Error("Pi SDK is loaded but missing required methods.");
         }
+
         setPi(sdk);
         await runAuthentication(sdk);
       } catch (err) {
@@ -133,16 +194,21 @@ export default function PiProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [piReady]);
 
   return (
     <PiContext.Provider
-      value={{
-        Pi: pi,
-        user,
-        initialized: initialized && !authenticating,
-        reauthenticate: () => (pi ? runAuthentication(pi) : Promise.resolve(null)),
-      }}
+      value={useMemo(
+        () => ({
+          Pi: pi,
+          user,
+          initialized: initialized && !authenticating,
+          piBrowser: piBrowser || Boolean(pi),
+          piReady,
+          reauthenticate: () => (pi ? runAuthentication(pi) : Promise.resolve(null)),
+        }),
+        [pi, user, initialized, authenticating, piBrowser, piReady]
+      )}
     >
       {children}
     </PiContext.Provider>
