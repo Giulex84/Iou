@@ -1,9 +1,0 @@
-{
-  "name": "IOU",
-  "description": "Manage your Pi IOUs, authenticate with Pi Network, and send Pi payments.",
-  "iconUrl": "/icon.svg",
-  "url": "https://iou-now-rpzp.vercel.app",
-  "permissions": ["username", "payments"],
-  "sandbox": true
-}
- 
