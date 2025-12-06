@@ -1,3 +1,4 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/public/manifest.json b/public/manifest.json
 index 01d25b16ef9d322b3e76d0300b80ecd97f6cd060..94853c73299cb9926b11155d0930c04686c85a23 100644
 --- a/public/manifest.json
@@ -15,3 +16,6 @@ index 01d25b16ef9d322b3e76d0300b80ecd97f6cd060..94853c73299cb9926b11155d0930c046
    ],
    "sandbox": true
  }
+ 
+EOF
+)
