@@ -90,14 +90,20 @@ async function insertIou(payload: Omit<IOU, "id" | "created_at">) {
     .from("ious")
     .insert(payload)
     .select("id, description, amount, other_party, direction, created_by_uid, is_settled, created_at")
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Supabase error (addIou):", error.message);
     throw error;
   }
 
-  return data;
+  const row = coerceMaybeSingleRow(data);
+
+  if (!row) {
+    throw new Error("Unable to create IOU - no data returned from Supabase");
+  }
+
+  return row;
 }
 
 async function updateIouRow(
@@ -109,14 +115,28 @@ async function updateIouRow(
     .update(updates)
     .eq("id", id)
     .select("id, description, amount, other_party, direction, created_by_uid, is_settled, created_at")
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Supabase error (updateIou):", error.message);
     throw error;
   }
 
-  return data;
+  const row = coerceMaybeSingleRow(data);
+
+  if (!row) {
+    throw new Error("IOU not found for update");
+  }
+
+  return row;
+}
+
+function coerceMaybeSingleRow<T>(row: T | T[] | null): T | null {
+  if (Array.isArray(row)) {
+    return row[0] ?? null;
+  }
+
+  return row;
 }
 
 // Compatibility alias for future imports
