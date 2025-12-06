@@ -1,24 +1,11 @@
 {
   "name": "IOU",
-  "short_name": "IOU",
-  "description": "Track and settle IOUs using Pi Browser authentication and Pi Network payments.",
-  "start_url": "/",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0F172A",
-  "theme_color": "#0F172A",
-  "lang": "en",
-  "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "description": "Manage your Pi IOUs, authenticate with Pi Network, and send Pi payments.",
+  "iconUrl": "https://iou-now-rpzp.vercel.app/icon-512.png",
+  "url": "https://iou-now-rpzp.vercel.app",
+  "permissions": [
+    "username",
+    "payments"
+  ],
+  "sandbox": true
 }
