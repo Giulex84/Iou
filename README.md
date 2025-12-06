@@ -29,3 +29,6 @@ A Pi-styled IOU tracker built with Next.js and React. It stores IOUs in Supabase
 - `PI_TESTNET_API_KEY` is required for server payment actions; production can switch to mainnet by setting `NEXT_PUBLIC_PI_SANDBOX=false` and `PI_API_KEY`.
 - The UI is designed to run inside Pi Browser, surfacing authentication status and test-payment prompts so the DApp is review-ready for the Pi Core Team.
 - Legacy `/api/pi/*` endpoints and unused history components have been removed so only the compliant Pi payment flow ships in the app bundle.
+
+## Come fare merge su `main`
+Consulta [docs/merge-main-guide.md](docs/merge-main-guide.md) per i passaggi consigliati per allineare un branch di lavoro e unire le modifiche su `main`.
