@@ -23,7 +23,7 @@ type IOUContextType = {
   refresh: () => Promise<void>;
   addIou: (iou: NewIouPayload) => Promise<void>;
   setSettlement: (id: string, isSettled: boolean) => Promise<void>;
-  removeIou: (id: string) => Promise<void>;
+  removeIou: (id: string | number) => Promise<void>;
 };
 
 const IOUContext = createContext<IOUContextType | undefined>(undefined);
@@ -69,7 +69,7 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const setSettlement = async (id: string, isSettled: boolean) => {
+  const setSettlement = async (id: string | number, isSettled: boolean) => {
     try {
       setError(null);
       const updated = await updateIouInDb(id, { is_settled: isSettled });
@@ -80,7 +80,7 @@ export default function IOUProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const removeIou = async (id: string) => {
+  const removeIou = async (id: string | number) => {
     try {
       setError(null);
       await deleteIouFromDb(id);

@@ -1,5 +1,5 @@
 export type IOU = {
-  id?: string;
+  id?: string | number;
   description: string;
   amount: number;
   other_party: string;
